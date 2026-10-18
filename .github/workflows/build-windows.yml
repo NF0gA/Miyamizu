@@ -1,0 +1,52 @@
+name: build-windows
+
+on:
+  workflow_dispatch:          # Actions タブから手動実行
+  push:
+    tags: ["v*"]              # v1.0.0 のようなタグを push すると、ビルドして Release に添付
+
+permissions:
+  contents: write             # Release へ添付するために必要
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: MinGW-w64 (r8brain / ノイズシェーピングの DLL 用)
+        id: msys2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: false
+          install: mingw-w64-ucrt-x86_64-gcc
+
+      - name: PATH に MinGW を追加
+        shell: pwsh
+        run: echo "${{ steps.msys2.outputs.msys2-location }}\ucrt64\bin" | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
+
+      - name: ビルド (build.bat)
+        shell: cmd
+        env:
+          PYTHON: python
+        run: build.bat
+
+      - name: zip にまとめる
+        shell: pwsh
+        run: Compress-Archive -Path dist\Miyamizu -DestinationPath Miyamizu-windows.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Miyamizu-windows
+          path: Miyamizu-windows.zip
+
+      - name: Release に添付 (タグ push のとき)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Miyamizu-windows.zip

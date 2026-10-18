@@ -23,5 +23,5 @@ exit /b %errorlevel%
 
 :fail
 echo [start] 失敗しました。Python 3.12 以降が入っているか確認してください。
-pause
+if not defined CI pause
 exit /b 1

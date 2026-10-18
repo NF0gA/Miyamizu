@@ -89,7 +89,7 @@
 
 Linux 版の ALSA/PipeWire 部分を WASAPI(sounddevice 経由)に置き換えたものです。**開発環境に Windows が無いため、実機での動作は未確認です**(偽のデバイスでのビット一致、通信、ビルド手順の確認まで)。
 
-- 起動: `start.bat`(venv 作成 → 不足パッケージのみ導入 → 起動。Python 3.12 以降が必要)。
+- 起動: `start.bat`(venv 作成 → 不足パッケージのみ導入 → 起動。Python 3.12 以降が必要)。r8brain とノイズシェーピングも使う場合は、MSYS2(UCRT64 の gcc)を入れて PATH に通し、一度 `build_native.bat` を実行してください(以降は `start.bat` でそのまま使えます)。
 - ビルド: `build.bat` → `dist\Miyamizu\Miyamizu.exe`(PyInstaller onedir)。r8brain とノイズシェーピングの DLL は、MinGW-w64(`g++`/`gcc`)が PATH にあればビルド時に同梱されます。無くても動きます(r8brain は選べず、ノイズシェーピングは使えません)。
 - 出力方式: 「WASAPI 共有」(既定)と「ビットパーフェクト(WASAPI 排他)」。排他は、実際に開ける形式(整数 32/24/16bit)を問い合わせて変換なしで渡します。他のアプリが排他で使用中だと開けません。
 - 時間軸: 再生スレッドに MMCSS(Pro Audio)と TIME_CRITICAL、タイマー分解能 1ms を設定し、専用コアは SetThreadAffinityMask で固定します(SMT 兄弟は自動で空けます)。電源プランは「高パフォーマンス」を推奨します。

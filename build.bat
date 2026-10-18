@@ -45,5 +45,5 @@ exit /b 0
 
 :fail
 echo [build] 失敗しました。
-pause
+if not defined CI pause
 exit /b 1
