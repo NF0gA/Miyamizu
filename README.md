@@ -124,5 +124,5 @@ Linux: `./build.sh` → `dist/Miyamizu/Miyamizu`(Windows は上の `build.bat`�
 
 ## クレジット・ライセンス
 
-Copyright (C) 2026 塩宮。GNU General Public License v3.0 以降で配布します(`LICENSE`)。実行ファイルを配布する場合は、GPL に従い対応するソースコード(このリポジトリ一式)を同じ場所で入手できるようにしてください。
+Copyright (C) 2026 狭霧 あざみ。GNU General Public License v3.0 以降で配布します(`LICENSE`)。実行ファイルを配布する場合は、GPL に従い対応するソースコード(このリポジトリ一式)を同じ場所で入手できるようにしてください。
 Sample rate converter designed by Aleksey Vaneev of Voxengo(r8brain-free-src、MIT)。アイコン画像は ChatGPT で生成したものです。第三者ソフトウェアは `THIRD_PARTY_NOTICES.md` を参照してください。
