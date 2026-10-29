@@ -2,8 +2,13 @@
 
 リピート : off / one(1曲) / folder(フォルダ内) / all(全曲)
 シャッフル: off / folder(フォルダ内) / all(全曲)
+「フォルダ内」の範囲 = 再生を始めた時に表示していた曲リスト(ctx_tracks)。親フォルダを選んでいれば
+(「サブフォルダも表示」がオンなら)サブフォルダの曲も含み、CUE アルバムを選んでいればそのアルバムだけになる。並べ替えも反映される。
 プレイリスト再生中は「フォルダ内」「全曲」の範囲がどちらもそのプレイリストになる(プレイリスト内リピート)。
-フォルダ = 再生中の曲が入っているフォルダ(サブフォルダは含めない)。CUE は1枚ごとに1つのフォルダ扱い。
+「全曲」はライブラリ全体。
+
+注意: エンジンは曲が切り替わった直後(音として聞こえ始める前)に次曲を尋ねる(need_next)ため、plan_next/upcoming が
+呼ばれる時点では cur がまだ on_started 前でシャッフル袋に残っていることがある。cur 自身は次曲の候補にしない。
 """
 from __future__ import annotations
 
@@ -52,7 +57,7 @@ class PlayOrder:
         self.repeat, self.shuffle = repeat, shuffle
 
     def _folder_set(self, cur: dict) -> list[dict]:
-        return self.ctx_tracks if self.playlist_mode else self.p.folder_tracks(cur)
+        return self.ctx_tracks
 
     def _all_set(self) -> list[dict]:
         return self.ctx_tracks if self.playlist_mode else self.p.all_tracks()
@@ -65,8 +70,7 @@ class PlayOrder:
         self._bag_map = {key_of(t): t for t in pool}
 
     def _pool_sig(self, pool: list[dict], cur: dict):
-        folder = None if (self.shuffle == "all" or self.playlist_mode) else group_of(cur)
-        return (self.shuffle, self.playlist_mode, folder, len(pool),
+        return (self.shuffle, self.playlist_mode, len(pool),
                 key_of(pool[0]) if pool else None, key_of(pool[-1]) if pool else None)
 
     # ---- 次/前 ----
@@ -85,13 +89,16 @@ class PlayOrder:
             if sig != self._bag_sig:
                 self._rebuild_bag(pool, cur)
                 self._bag_sig = sig
-            if not self._bag:
+            ck = key_of(cur)
+            rest = [k for k in self._bag if k != ck]          # cur 自身は(on_started 前でも)次の候補にしない
+            if not rest:
                 if self.repeat == "off" and auto:
                     return None
                 self._rebuild_bag(pool, cur)
-                if not self._bag:
+                rest = list(self._bag)
+                if not rest:
                     return cur if self.repeat != "off" else None
-            return self._bag_map.get(self._bag[0])
+            return self._bag_map.get(rest[0])
         if self.repeat == "all":
             seq = self._all_set()
         elif self.repeat == "folder":
@@ -114,18 +121,19 @@ class PlayOrder:
         if self.repeat == "one":
             return [cur], "1曲リピート中"
         if self.shuffle != "off":
-            if self.plan_next(cur, auto=True) is None and not self._bag:
+            ck = key_of(cur)
+            if self.plan_next(cur, auto=True) is None and not any(k != ck for k in self._bag):
                 return [], "シャッフル(最後の曲)"
-            out = [self._bag_map[k] for k in self._bag[:n] if k in self._bag_map]
-            note = "シャッフル: " + ("フォルダ内" if self.shuffle == "folder" and not self.playlist_mode else
+            out = [self._bag_map[k] for k in self._bag if k != ck and k in self._bag_map][:n]
+            note = "シャッフル: " + ("表示中の一覧" if self.shuffle == "folder" and not self.playlist_mode else
                                      ("プレイリスト内" if self.playlist_mode else "全曲"))
-            if len(self._bag) < n and self.repeat != "off":
+            if len(out) < n and self.repeat != "off":
                 note += "(以降は再シャッフル)"
             return out, note
         if self.repeat == "all":
             seq, note = self._all_set(), "リピート: " + ("プレイリスト" if self.playlist_mode else "全曲")
         elif self.repeat == "folder":
-            seq, note = self._folder_set(cur), "リピート: " + ("プレイリスト" if self.playlist_mode else "フォルダ内")
+            seq, note = self._folder_set(cur), "リピート: " + ("プレイリスト" if self.playlist_mode else "表示中の一覧")
         else:
             seq, note = self.ctx_tracks, "順番に再生"
         idx = next((i for i, t in enumerate(seq) if key_of(t) == key_of(cur)), -1)

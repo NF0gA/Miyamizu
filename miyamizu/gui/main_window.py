@@ -26,9 +26,9 @@ from .settings_dialog import SettingsDialog
 from .widgets import (ArtBackground, COL_ALBUM, COL_ARTIST, COL_DUR, COL_FILE, COL_FMT, COL_NO, COL_RAM, COL_TITLE,
                       FreqWidget, HistogramWidget, MIME_TRACKS, TrackModel)
 
-REPEAT_MODES = [("off", "リピート: オフ"), ("one", "リピート: 1曲"), ("folder", "リピート: フォルダ内"), ("all", "リピート: 全曲")]
+REPEAT_MODES = [("off", "リピート: オフ"), ("one", "リピート: 1曲"), ("folder", "リピート: 表示中の一覧"), ("all", "リピート: 全曲")]
 LAYOUT_VER = "2"
-SHUFFLE_MODES = [("off", "シャッフル: オフ"), ("folder", "シャッフル: フォルダ内"), ("all", "シャッフル: 全曲")]
+SHUFFLE_MODES = [("off", "シャッフル: オフ"), ("folder", "シャッフル: 表示中の一覧"), ("all", "シャッフル: 全曲")]
 
 
 # ------------------------------------------------------------------ バックグラウンド処理
